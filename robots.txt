@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://loadsynclogistics.vercel.app/sitemap.xml
+Sitemap: https://loadsync-logistics.vercel.app/sitemap.xml
