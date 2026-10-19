@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoadSync Command Center — 24/7 Truck Dispatch Operations</title>
+<meta name="description" content="LoadSync Logistics dispatch command center: 24/7 load finding, rate negotiation, paperwork and billing for owner-operators and small fleets. Dry van, reefer, flatbed and auto transport.">
+<link rel="canonical" href="https://loadsync-logistics.vercel.app/command-center.html">
+<link rel="icon" href="assets/favicon-48.png" sizes="48x48" type="image/png">
+<link rel="icon" href="assets/favicon-96.png" sizes="96x96" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#000; --panel:#05070a; --line:#12242b; --line2:#1b2f36;
+  --cyan:#00e5ff; --orange:#ff6a1a; --magenta:#ff2bd6; --yellow:#ffe14d;
+  --purple:#8a4dff; --txt:#e8f6f8; --dim:#7f949c; --dim2:#4d5e66;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:'JetBrains Mono',ui-monospace,monospace;font-size:15px;line-height:1.5;
+  background-image:linear-gradient(rgba(0,229,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.03) 1px,transparent 1px);
+  background-size:44px 44px}
+a{color:var(--cyan);text-decoration:none}
+.wrap{max-width:1280px;margin:0 auto;padding:0 20px}
+/* top bar */
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+  border-bottom:1px solid var(--line2);padding:14px 0}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .mark{width:38px;height:38px;border:1px solid var(--cyan);color:var(--cyan);display:grid;place-items:center;
+  font-weight:800;font-size:15px;box-shadow:0 0 14px rgba(0,229,255,.35), inset 0 0 8px rgba(0,229,255,.15)}
+.brand h1{font-size:15px;letter-spacing:.14em;font-weight:800;color:#fff}
+.brand h1 small{display:block;font-size:10px;letter-spacing:.34em;color:var(--cyan);font-weight:500}
+.topmeta{text-align:right;font-size:10px;letter-spacing:.18em;color:var(--dim)}
+.topmeta b{color:var(--yellow);font-weight:500}
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--cyan);margin-right:6px;
+  box-shadow:0 0 8px var(--cyan);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+/* control bar */
+.ctrlbar{display:flex;gap:8px;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid var(--line)}
+.ctrl{font-family:inherit;font-size:10px;letter-spacing:.12em;padding:7px 12px;border:1px solid var(--line2);
+  background:rgba(0,0,0,.6);color:var(--dim);cursor:pointer;transition:.18s;text-transform:uppercase}
+.ctrl:hover{color:#000;border-color:transparent}
+.ctrl.c-cyan:hover{background:var(--cyan);box-shadow:0 0 16px rgba(0,229,255,.5)}
+.ctrl.c-orange:hover{background:var(--orange);box-shadow:0 0 16px rgba(255,106,26,.5)}
+.ctrl.c-purple:hover{background:var(--purple)}
+.ctrl.c-magenta:hover{background:var(--magenta);box-shadow:0 0 16px rgba(255,43,214,.5)}
+.ctrl.c-yellow:hover{background:var(--yellow)}
+.ctrl.c-gray:hover{background:var(--dim);color:#000}
+/* main grid */
+.grid{display:grid;grid-template-columns:1fr 360px;gap:14px;padding:14px 0}
+@media(max-width:960px){.grid{grid-template-columns:1fr}}
+.panel{border:1px solid var(--line2);background:var(--panel);position:relative}
+.panel .ph{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--line);
+  font-size:10px;letter-spacing:.22em;color:var(--dim);text-transform:uppercase}
+.panel .ph b{color:var(--cyan);font-weight:500}
+/* sphere stage */
+.stage{position:relative;height:480px;overflow:hidden}
+#sphere{width:100%;height:100%;display:block}
+.stage .tag{position:absolute;left:14px;bottom:14px;border:1px solid var(--yellow);background:rgba(0,0,0,.72);
+  padding:10px 14px;font-size:11px;line-height:1.8;letter-spacing:.08em;color:var(--txt)}
+.stage .tag b{color:var(--yellow);font-weight:700}
+.stage .scanline{position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.015) 0 1px,transparent 1px 3px)}
+/* sidebar */
+.side{display:flex;flex-direction:column;gap:14px}
+.clock{font-size:26px;color:#fff;font-weight:700;letter-spacing:.06em;padding:14px 16px 4px}
+.clock small{display:block;font-size:10px;letter-spacing:.22em;color:var(--dim);font-weight:400;margin-top:4px}
+.sparkrow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 14px 14px}
+.spark{border:1px solid var(--line);height:54px}
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px}
+.stat{border:1px solid var(--line);padding:12px 14px;background:rgba(0,229,255,.03)}
+.stat b{display:block;font-size:22px;color:var(--cyan);font-weight:800;text-shadow:0 0 12px rgba(0,229,255,.4)}
+.stat span{font-size:9.5px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+.stat.o b{color:var(--orange);text-shadow:0 0 12px rgba(255,106,26,.4);background:rgba(255,106,26,.04)}
+.stat.y b{color:var(--yellow);text-shadow:0 0 12px rgba(255,225,77,.35);background:rgba(255,225,77,.04)}
+.stat.m b{color:var(--magenta);text-shadow:0 0 12px rgba(255,43,214,.4);background:rgba(255,43,214,.04)}
+.cycles{padding:6px 14px 14px}
+.cycle{padding:10px 0;border-bottom:1px dashed var(--line)}
+.cycle:last-child{border-bottom:none}
+.cycle .cl{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.1em;margin-bottom:7px}
+.cycle .cl b{color:#fff;font-weight:700}.cycle .cl span{color:var(--dim)}
+.bar{height:6px;background:#0a1114;border:1px solid var(--line);position:relative;overflow:hidden}
+.bar i{position:absolute;inset:0;transform-origin:left;animation:fill 4.2s ease-in-out infinite}
+@keyframes fill{0%{transform:scaleX(.05)}60%{transform:scaleX(1)}100%{transform:scaleX(1)}}
+/* equipment mix */
+.mix{display:flex;gap:16px;align-items:center;padding:14px}
+#pie{width:150px;height:150px;flex:none}
+.legend{font-size:10.5px;line-height:2.1;letter-spacing:.08em}
+.legend i{display:inline-block;width:9px;height:9px;margin-right:8px}
+.legend b{color:#fff}
+/* coverage strip */
+.covrow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:14px 0}
+@media(max-width:760px){.covrow{grid-template-columns:1fr 1fr}}
+.cov .lbl{padding:9px 14px;border-bottom:1px solid var(--line);font-size:10px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
+#coverage{width:100%;height:96px;display:block}
+/* sections */
+.sec{padding:52px 0;border-top:1px solid var(--line)}
+.sec-head{margin-bottom:26px}
+.sec-head .eyebrow{color:var(--cyan);font-size:10px;letter-spacing:.34em;text-transform:uppercase}
+.sec-head h2{font-size:clamp(22px,3.4vw,32px);color:#fff;font-weight:800;letter-spacing:.02em;margin-top:8px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:960px){.cards{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.cards{grid-template-columns:1fr}}
+.card{border:1px solid var(--line2);background:var(--panel);padding:20px;transition:.2s}
+.card:hover{border-color:var(--cyan);box-shadow:0 0 22px rgba(0,229,255,.12);transform:translateY(-2px)}
+.card .ic{width:34px;height:34px;border:1px solid var(--cyan);color:var(--cyan);display:grid;place-items:center;font-size:16px;margin-bottom:14px}
+.card h3{color:#fff;font-size:14px;letter-spacing:.06em;margin-bottom:8px}
+.card p{color:var(--dim);font-size:12.5px;line-height:1.75}
+.freight{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:960px){.freight{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.freight{grid-template-columns:1fr}}
+.fcard{border:1px solid var(--line2);background:var(--panel);padding:18px}
+.fcard .tag{display:inline-block;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);
+  border:1px solid var(--orange);padding:5px 10px;margin-bottom:12px;box-shadow:0 0 10px rgba(255,106,26,.2)}
+.fcard p{color:var(--dim);font-size:12px;line-height:1.7}
+.feature{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;align-items:stretch}
+@media(max-width:960px){.feature{grid-template-columns:1fr}}
+.feature img{width:100%;height:100%;object-fit:cover;border:1px solid var(--line2);filter:saturate(.9) contrast(1.05)}
+.feature .txt{border:1px solid var(--orange);background:rgba(255,106,26,.04);padding:26px}
+.feature h3{color:#fff;font-size:16px;letter-spacing:.04em;margin-bottom:10px}
+.feature p,.feature li{color:var(--dim);font-size:12.5px;line-height:1.8}
+.feature ul{list-style:none;margin-top:10px}
+.feature li::before{content:"▸ ";color:var(--orange)}
+.check{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:760px){.check{grid-template-columns:1fr}}
+.check .row{display:flex;gap:12px;border:1px solid var(--line2);background:var(--panel);padding:14px;align-items:flex-start}
+.check .row b{color:#fff;font-size:12.5px;display:block;letter-spacing:.04em}
+.check .row span{color:var(--dim);font-size:11px}
+.check .tick{color:var(--cyan);font-weight:800;flex:none}
+/* contact */
+.contact{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:960px){.contact{grid-template-columns:1fr}}
+.cinfo{border:1px solid var(--cyan);background:rgba(0,229,255,.03);padding:24px}
+.cinfo h3{color:#fff;letter-spacing:.05em;font-size:15px;margin-bottom:16px}
+.cinfo .item{display:flex;gap:12px;padding:12px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+.cinfo .item:last-child{border:none}
+.cinfo .item b{display:block;color:var(--cyan);font-size:10px;letter-spacing:.22em;text-transform:uppercase;margin-bottom:4px}
+.cinfo .item span{color:var(--txt)}
+.mapwrap{border:1px solid var(--line2);min-height:320px}
+.mapwrap iframe{width:100%;height:100%;min-height:320px;border:0;filter:grayscale(.4) invert(.92) hue-rotate(180deg) contrast(.9)}
+.bigbtns{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
+.btn{display:inline-block;font-family:inherit;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  padding:14px 24px;border:1px solid transparent;transition:.2s}
+.btn-cyan{background:var(--cyan);color:#000;font-weight:800;box-shadow:0 0 24px rgba(0,229,255,.45)}
+.btn-cyan:hover{box-shadow:0 0 36px rgba(0,229,255,.7)}
+.btn-ghost{border-color:var(--orange);color:var(--orange)}
+.btn-ghost:hover{background:var(--orange);color:#000;box-shadow:0 0 24px rgba(255,106,26,.4)}
+footer{border-top:1px solid var(--line2);padding:26px 0;margin-top:52px}
+.ftr{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-size:10.5px;letter-spacing:.16em;color:var(--dim2);text-transform:uppercase}
+.ftr a{color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="mark">LS</div>
+      <h1>LOADSYNC LOGISTICS<small>DISPATCH COMMAND CENTER</small></h1>
+    </div>
+    <div class="topmeta">
+      <div><span class="live-dot"></span>OPERATIONS ONLINE — <b>OPEN 24/7</b></div>
+      <div id="clock">— — : — —</div>
+    </div>
+  </div>
+
+  <!-- CONTROL BAR -->
+  <div class="ctrlbar">
+    <a class="ctrl c-cyan" href="#services">load.find</a>
+    <a class="ctrl c-orange" href="#services">rate.negotiate</a>
+    <a class="ctrl c-purple" href="#services">paperwork</a>
+    <a class="ctrl c-magenta" href="#services">billing</a>
+    <a class="ctrl c-yellow" href="#services">route.plan</a>
+    <a class="ctrl c-cyan" href="#services">tms.eld</a>
+    <a class="ctrl c-gray" href="#freight">freight.types</a>
+    <a class="ctrl c-gray" href="#why">sys.status</a>
+    <a class="ctrl c-orange" href="tel:+16692327425">exec.call</a>
+    <a class="ctrl c-green" style="color:#3ddc84;border-color:#1f6b40" href="https://wa.me/12796676204" target="_blank" rel="noopener">wa.connect</a>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="grid">
+    <!-- SPHERE -->
+    <div class="panel">
+      <div class="ph"><span>CARRIER NETWORK — U.S. COVERAGE MAP</span><b>NODE: PHOENIX AZ</b></div>
+      <div class="stage">
+        <canvas id="sphere"></canvas>
+        <div class="tag">
+          <b>EXEC PLAN // DISPATCH CYCLE</b><br>
+          LOAD FIND → RATE NEGOTIATE → PAPERWORK → BILLING<br>
+          NO FORCED DISPATCH — YOU APPROVE EVERY LOAD
+        </div>
+        <div class="scanline"></div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="side">
+      <div class="panel">
+        <div class="ph"><span>SYSTEM TIME</span><b>UTC−7</b></div>
+        <div class="clock" id="bigclock">--:--:--<small>PHOENIX, AZ — MST (UTC−7)</small></div>
+        <div class="sparkrow">
+          <canvas class="spark" id="sp1"></canvas>
+          <canvas class="spark" id="sp2"></canvas>
+          <canvas class="spark" id="sp3"></canvas>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><span>OPS STATUS</span><b>ALL SYSTEMS GO</b></div>
+        <div class="statgrid">
+          <div class="stat"><b>24/7</b><span>Dispatch coverage</span></div>
+          <div class="stat o"><b>1–20</b><span>Truck fleets served</span></div>
+          <div class="stat y"><b>4</b><span>Freight types</span></div>
+          <div class="stat m"><b>3rd</b><span>Shift covered nightly</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><span>DISPATCH CYCLE</span><b>ONBOARDING</b></div>
+        <div class="cycles">
+          <div class="cycle"><div class="cl"><b>C1 // SIGN UP</b><span>&lt; 1 DAY</span></div><div class="bar"><i style="background:linear-gradient(90deg,#00e5ff,#00e5ff99)"></i></div></div>
+          <div class="cycle"><div class="cl"><b>C2 // SEARCH + NEGOTIATE</b><span>DAILY</span></div><div class="bar"><i style="background:linear-gradient(90deg,#ff6a1a,#ff6a1a99);animation-delay:.3s"></i></div></div>
+          <div class="cycle"><div class="cl"><b>C3 // YOU DRIVE</b><span>24/7 SUPPORT</span></div><div class="bar"><i style="background:linear-gradient(90deg,#ff2bd6,#ff2bd699);animation-delay:.6s"></i></div></div>
+          <div class="cycle"><div class="cl"><b>C4 // GET PAID</b><span>WEEKLY RPT</span></div><div class="bar"><i style="background:linear-gradient(90deg,#ffe14d,#ffe14d99);animation-delay:.9s"></i></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EQUIPMENT MIX + COVERAGE -->
+  <div class="covrow">
+    <div class="panel cov" style="grid-column:span 2">
+      <div class="lbl">NETWORK ACTIVITY — LIVE DISPATCH PULSE</div>
+      <canvas id="coverage"></canvas>
+    </div>
+    <div class="panel cov" style="grid-column:span 2">
+      <div class="lbl">EQUIPMENT MIX — AUTO TRANSPORT SPECIALTY</div>
+      <div class="mix">
+        <canvas id="pie" width="150" height="150"></canvas>
+        <div class="legend">
+          <div><i style="background:#ff6a1a"></i><b>AUTO TRANSPORT</b> — specialty</div>
+          <div><i style="background:#00e5ff"></i><b>DRY VAN</b></div>
+          <div><i style="background:#8a4dff"></i><b>REEFER</b></div>
+          <div><i style="background:#2b6b8a"></i><b>FLATBED</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SERVICES -->
+  <div class="sec" id="services">
+    <div class="sec-head">
+      <span class="eyebrow">// MODULES — WHAT WE DO</span>
+      <h2>Full-service dispatching, so you can just drive</h2>
+    </div>
+    <div class="cards">
+      <div class="card"><div class="ic">↗</div><h3>Load Finding &amp; Booking</h3><p>We search the boards, match loads to your lane and schedule, and book them fast — every day, including nights and weekends.</p></div>
+      <div class="card"><div class="ic">$</div><h3>Rate Negotiation</h3><p>We push for top rates and know when a "no" is worth more than a bad load. You get the rate, we handle the haggling.</p></div>
+      <div class="card"><div class="ic">▤</div><h3>Paperwork &amp; Setup</h3><p>Broker packets, insurance certificates, W-9s, carrier agreements — the setup grind disappears from your to-do list.</p></div>
+      <div class="card"><div class="ic">≡</div><h3>Billing &amp; Invoicing</h3><p>Invoices sent, factoring paperwork handled, and payment tracked so you always know where your money is.</p></div>
+      <div class="card"><div class="ic">◎</div><h3>Route &amp; Fuel Planning</h3><p>Practical route planning with fuel stops and detention awareness — deadhead miles down, revenue per mile up.</p></div>
+      <div class="card"><div class="ic">▣</div><h3>TMS &amp; ELD Management</h3><p>Our dispatchers are trained on McLeod, Samsara, and Motive — we plug straight into the systems you already run.</p></div>
+    </div>
+  </div>
+
+  <!-- FREIGHT -->
+  <div class="sec" id="freight">
+    <div class="sec-head">
+      <span class="eyebrow">// EQUIPMENT WE DISPATCH</span>
+      <h2>Every trailer. One dispatch team.</h2>
+    </div>
+    <div class="freight">
+      <div class="fcard"><span class="tag">Dry Van</span><p>Steady freight, strong lanes, consistent backhauls.</p></div>
+      <div class="fcard"><span class="tag">Reefer</span><p>Temperature-controlled loads with zero-tolerance timing.</p></div>
+      <div class="fcard"><span class="tag">Flatbed</span><p>Oversized, open-deck, and heavy haul coordination.</p></div>
+      <div class="fcard"><span class="tag">Auto Transport</span><p>Our specialty — car hauling dispatch done right.</p></div>
+    </div>
+    <div class="feature">
+      <img src="img/car-hauler.jpg" alt="Car carrier transport truck loaded with vehicles on a highway">
+      <div class="txt">
+        <h3>Car hauling is our home turf</h3>
+        <p>We specialize in auto transport dispatch — from single-car owner-operators to small car-hauling fleets:</p>
+        <ul>
+          <li>Central Dispatch and load board management</li>
+          <li>Route building that stacks cars, not miles</li>
+          <li>Dealer and auction pickups coordinated on time</li>
+          <li>Trained dispatchers who speak car hauler</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHY US -->
+  <div class="sec" id="why">
+    <div class="sec-head">
+      <span class="eyebrow">// SYS.STATUS — WHY LOADSYNC</span>
+      <h2>A dispatch team that actually picks up the phone at 2 AM</h2>
+    </div>
+    <div class="check">
+      <div class="row"><span class="tick">✓</span><div><b>24/7 coverage including 3rd shift</b><span>A live dispatcher whenever the road needs one — freight doesn't work 9-to-5 and neither do we.</span></div></div>
+      <div class="row"><span class="tick">✓</span><div><b>Trained on McLeod, Samsara &amp; Motive</b><span>No learning curve on your systems — we plug into the tools you already run.</span></div></div>
+      <div class="row"><span class="tick">✓</span><div><b>No forced dispatch</b><span>You approve every load, every time.</span></div></div>
+      <div class="row"><span class="tick">✓</span><div><b>Small-fleet specialists</b><span>Built for 1–20 truck operations — owner-operators and small fleets are our whole focus.</span></div></div>
+    </div>
+    <div class="bigbtns">
+      <a href="tel:+16692327425" class="btn btn-cyan">📞 Call +1 (669) 232-7425</a>
+      <a href="https://wa.me/12796676204" target="_blank" rel="noopener" class="btn btn-ghost">WhatsApp Us</a>
+    </div>
+  </div>
+
+  <!-- CONTACT -->
+  <div class="sec" id="contact">
+    <div class="sec-head">
+      <span class="eyebrow">// CONNECT — FIND US</span>
+      <h2>Location &amp; contact</h2>
+    </div>
+    <div class="contact">
+      <div class="cinfo">
+        <h3>LOADSYNC LOGISTICS // HQ</h3>
+        <div class="item"><div><b>Office</b><span>4020 S 9th St #307<br>Phoenix, AZ 85040, USA</span></div></div>
+        <div class="item"><div><b>Phone</b><span><a href="tel:+16692327425">+1 (669) 232-7425</a> · <a href="tel:+12796676204">+1 (279) 667-6204</a></span></div></div>
+        <div class="item"><div><b>WhatsApp</b><span><a href="https://wa.me/12796676204" target="_blank" rel="noopener">Message us any time</a></span></div></div>
+        <div class="item"><div><b>Hours</b><span>Open 24/7 — including nights &amp; weekends</span></div></div>
+        <div class="bigbtns">
+          <a href="tel:+16692327425" class="btn btn-cyan">Initiate Call</a>
+          <a href="https://wa.me/12796676204" target="_blank" rel="noopener" class="btn btn-ghost">WhatsApp Link</a>
+        </div>
+      </div>
+      <div class="mapwrap">
+        <iframe title="LoadSync Logistics on Google Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+          src="https://maps.google.com/maps?q=4020%20S%209th%20St%20%23307%2C%20Phoenix%2C%20AZ%2085040&t=&z=14&ie=UTF8&iwloc=&output=embed"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="ftr">
+      <span>© 2026 LoadSync Logistics — 24/7 Dispatch</span>
+      <span>Dispatching the miles while you drive them</span>
+      <span><a href="/">← Back to main site</a></span>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  // ---- clock (Phoenix MST, UTC-7, no DST) ----
+  function tick(){
+    var d=new Date(Date.now() - (new Date().getTimezoneOffset()*60000) + (-7*3600000));
+    var t=d.toISOString().substr(11,8);
+    document.getElementById('bigclock').firstChild.nodeValue=t;
+    document.getElementById('clock').textContent='LOCAL TIME '+t+' MST';
+  }
+  tick(); setInterval(tick,1000);
+
+  // ---- helper: canvas sizing ----
+  function fit(c){var r=c.getBoundingClientRect();c.width=r.width*devicePixelRatio;c.height=r.height*devicePixelRatio;return c.getContext('2d');}
+
+  // ---- sphere network ----
+  var sc=document.getElementById('sphere');
+  if(sc){
+    var N=110,pts=[];
+    for(var i=0;i<N;i++){
+      var y=1-(i/(N-1))*2, r=Math.sqrt(1-y*y), th=i*2.39996;
+      pts.push({x:Math.cos(th)*r,y:y,z:Math.sin(th)*r,hot:i%17===0});
+    }
+    var ctx=null,rot=0;
+    function drawSphere(){
+      if(!ctx)ctx=fit(sc);
+      var w=sc.width,h=sc.height;ctx.clearRect(0,0,w,h);
+      var cx=w*0.42,cy=h*0.5,R=Math.min(w,h)*0.36;
+      rot+=0.0022;
+      var proj=pts.map(function(p){
+        var x=p.x*Math.cos(rot)-p.z*Math.sin(rot), z=p.x*Math.sin(rot)+p.z*Math.cos(rot);
+        var s=1/(1.9-z*0.7);
+        return {u:cx+x*R*s,v:cy+p.y*R*s,z:z,s:s,hot:p.hot};
+      });
+      // orbits
+      ctx.strokeStyle='rgba(0,229,255,.18)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.ellipse(cx,cy,R*1.25,R*0.32,-0.3,0,6.284);ctx.stroke();
+      ctx.beginPath();ctx.ellipse(cx,cy,R*1.45,R*0.5,0.42,0,6.284);ctx.stroke();
+      // links
+      for(var i=0;i<N;i++)for(var j=i+1;j<N;j++){
+        var a=proj[i],b=proj[j],dx=a.u-b.u,dy=a.v-b.v,d=dx*dx+dy*dy;
+        if(d<R*R*0.028){
+          var al=0.16*(1-d/(R*R*0.028))*Math.min(a.s,b.s);
+          ctx.strokeStyle='rgba(0,229,255,'+al.toFixed(3)+')';
+          ctx.beginPath();ctx.moveTo(a.u,a.v);ctx.lineTo(b.u,b.v);ctx.stroke();
+        }
+      }
+      // nodes
+      proj.forEach(function(p,i){
+        var sz=(p.hot?3.4:2.1)*devicePixelRatio*p.s;
+        ctx.fillStyle=p.hot?'#ff6a1a':'#00e5ff';
+        ctx.shadowColor=p.hot?'#ff6a1a':'#00e5ff';ctx.shadowBlur=p.hot?14:8;
+        ctx.beginPath();ctx.arc(p.u,p.v,sz,0,6.284);ctx.fill();
+      });
+      ctx.shadowBlur=0;
+      requestAnimationFrame(drawSphere);
+    }
+    drawSphere();
+  }
+
+  // ---- sparklines ----
+  function spark(id,color){
+    var c=document.getElementById(id);if(!c)return;
+    var data=[],ctx=null,t=0;
+    for(var i=0;i<40;i++)data.push(Math.random());
+    function step(){
+      if(!ctx)ctx=fit(c);
+      var w=c.width,h=c.height;t+=0.06;
+      data.shift();data.push(Math.min(1,Math.max(0,data[data.length-1]+(Math.random()-.5)*.2+Math.sin(t)*.03));
+      ctx.clearRect(0,0,w,h);
+      ctx.strokeStyle='rgba(255,255,255,.05)';
+      for(var g=0;g<w;g+=w/8){ctx.beginPath();ctx.moveTo(g,0);ctx.lineTo(g,h);ctx.stroke();}
+      ctx.strokeStyle=color;ctx.lineWidth=1.4*devicePixelRatio;ctx.beginPath();
+      data.forEach(function(v,i){var x=i/(data.length-1)*w,y=h-4-v*(h-8);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+      ctx.stroke();
+      ctx.fillStyle=color;var lx=w,ly=h-4-data[data.length-1]*(h-8);
+      ctx.beginPath();ctx.arc(lx-2,ly,2.4*devicePixelRatio,0,6.284);ctx.fill();
+      setTimeout(step,90);
+    }
+    step();
+  }
+  spark('sp1','#00e5ff');spark('sp2','#ff6a1a');spark('sp3','#ff2bd6');
+
+  // ---- coverage pulse ----
+  var cov=document.getElementById('coverage');
+  if(cov){
+    var cctx=null,t=0;
+    function drawCov(){
+      if(!cctx)cctx=fit(cov);
+      var w=cov.width,h=cov.height;t+=0.012;ctx=cctx;
+      ctx.clearRect(0,0,w,h);
+      ctx.strokeStyle='rgba(0,229,255,.08)';
+      for(var g=0;g<w;g+=w/12){ctx.beginPath();ctx.moveTo(g,0);ctx.lineTo(g,h);ctx.stroke();}
+      for(g=0;g<h;g+=h/4){ctx.beginPath();ctx.moveTo(0,g);ctx.lineTo(w,g);ctx.stroke();}
+      function wave(color,amp,ph,spd){
+        ctx.strokeStyle=color;ctx.lineWidth=1.6*devicePixelRatio;ctx.beginPath();
+        for(var x=0;x<=w;x+=3){
+          var p=x/w, y=h/2 + Math.sin(p*9+t*spd+ph)*amp + Math.sin(p*23-t*spd*1.7)*amp*0.35;
+          x?ctx.lineTo(x,y):ctx.moveTo(x,y);
+        }
+        ctx.stroke();
+      }
+      wave('rgba(0,229,255,.9)',h*0.2,0,1);
+      wave('rgba(255,106,26,.55)',h*0.16,1.8,-0.7);
+      wave('rgba(255,43,214,.35)',h*0.12,3.6,1.3);
+      requestAnimationFrame(drawCov);
+    }
+    drawCov();
+  }
+
+  // ---- equipment pie ----
+  var pie=document.getElementById('pie');
+  if(pie){
+    var pctx=pie.getContext('2d');
+    var segs=[['#ff6a1a',-0.5,5.8],['#00e5ff',5.3,1.3],['#8a4dff',6.6,0.5],['#2b6b8a',7.1,1.2]];
+    var t0=0;
+    function drawPie(){
+      pctx.clearRect(0,0,150,150);t0+=0.004;
+      var cx=75,cy=75,R=62;
+      segs.forEach(function(s,i){
+        var a=s[1]+t0*(i===0?1:0.4),b=a+s[2];
+        pctx.fillStyle=s[0];pctx.beginPath();pctx.moveTo(cx,cy);pctx.arc(cx,cy,R,a,b);pctx.closePath();pctx.fill();
+      });
+      pctx.fillStyle='#000';pctx.beginPath();pctx.arc(cx,cy,R*0.55,0,6.284);pctx.fill();
+      pctx.strokeStyle='rgba(0,229,255,.4)';pctx.beginPath();pctx.arc(cx,cy,R,0,6.284);pctx.stroke();
+      pctx.fillStyle='#fff';pctx.font='700 11px JetBrains Mono, monospace';pctx.textAlign='center';
+      pctx.fillText('AUTO',cx,cy-2);pctx.fillText('FOCUS',cx,cy+11);
+      requestAnimationFrame(drawPie);
+    }
+    drawPie();
+  }
+})();
+</script>
+</body>
+</html>
